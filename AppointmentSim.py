@@ -19,30 +19,18 @@ class clCapacityReleasePolicy(object):
         for dayType in self.__lstDayTypes:
             self.__policyDict[dayType] = {}
             # initally release nothing
+
             self.__addCapacity(dayType, self.__planningHorizonLength + 1, 0)
             # on the last day release maximum
             self.__addCapacity(dayType, 0, self.__maxCapacity)
 
         # call proper policy function
-        print policyType
         policy = getattr(self, "add_policy_"+str(policyType), None)
         if policy is not None:
             policy()
         else:
             print "Policy not found, defaulting to policy 1"
             self.add_policy_1()
-
-        # now add sorted lists of capacity adjustments
-        for dayType in self.__lstDayTypes:
-            tempSortedList = sorted(list(self.__policyDict[dayType].keys()))
-            print dayType, self.__policyDict[dayType]
-            numKeys = len(tempSortedList) - 1
-            # and check that the capacity released is not increasing
-            for j in range(numKeys):
-                key1 = tempSortedList[j]
-                key2 = tempSortedList[j + 1]
-                assert self.__policyDict[dayType][key1] >= self.__policyDict[dayType][
-                    key2], "capacity released must not decrease as appointment day approaches"
 
     # TODO: Add automated policy creation for longer horizons?
 
@@ -122,14 +110,19 @@ class clCapacityReleasePolicy(object):
         # add capacities for each day type
         for i, dayType in enumerate(lstDayTypes):
             for j, daysUntil in enumerate(lstDaysFromToday):
-
                 # perform error checking
                 assert lstCapacityReleased[i][j] <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
-                if j > 0:
-                    assert self.__policyDict[dayType][daysUntil+1] <= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
+                assert self.__policyDict[dayType][daysUntil + 1] <= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
 
                 self.__policyDict[dayType][daysUntil] = max(0, lstCapacityReleased[i][j])
+
+    def __addCapacity(self, dayType, daysFromToday, capacityReleased):
+        # perform error checking
+        assert capacityReleased <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
+        assert daysFromToday <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
+
+        self.__policyDict[dayType][daysFromToday] = max(0, capacityReleased)
 
 
 
