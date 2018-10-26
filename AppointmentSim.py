@@ -11,9 +11,11 @@ class clCapacityReleasePolicy(object):
 
         if policy is not None:
             self.__lstDayTypes = policy.keys()
+            self.__acuteDemandDict = {}
             if theta == 1:
                 for i, day in enumerate(self.__lstDayTypes):
-                    self.__lstDayTypes[i] = avgRate
+                    print "Day {}".format(day)
+                    self.__acuteDemandDict[day] = avgRate
             else:
                 # TODO: Ask about theta and how it will be affected w/ more daytypes
                 self.__lstDayTypes[0] = (2 - theta) * avgRate
@@ -124,7 +126,6 @@ class clCapacityReleasePolicy(object):
             daysFromToday = lstDaysFromToday[i]
             # iterate over release schedule and add release capacities
             for j, daysUntil in enumerate(daysFromToday):
-                print self.__policyDict
                 # perform error checking
                 assert lstCapacityReleased[i][j] <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
@@ -166,6 +167,9 @@ class clCapacityReleasePolicy(object):
 
     def getLstDayTypes(self):
         return self.__lstDayTypes
+
+    def getAcuteDemand(self, day):
+        return self.__acuteDemandDict[day] if day in self.__acuteDemandDict.keys() else None
 
 
 class clAppointmentSimulation(object):
@@ -246,6 +250,7 @@ class clAppointmentSimulation(object):
         self.lstCancelAnnounced.append(ttlCancelAnnounced)
         # generate new requests for appointments
         thisDayIndex = currentDay % self.lenPlanningHorizon
+
         (numAcuteRequests, acuteScheduled, acuteToSchedule, followUpToSchedule) = self.planningHorizon[
             thisDayIndex].generateApptRequests()
         self.lstUtilized.append(self.planningHorizon[thisDayIndex].anticipatedUtilized)
@@ -324,8 +329,8 @@ class clDay(object):
         # TODO: Change where we get rateAcute from, currently it's an key
         # TODO: in a dictionary, should be value in a day : rateAcute dict
 
-        self.rateAcute = self.__capReleasePolicy.getLstDayTypes()[
-            simulationDay % self.__capReleasePolicy.getNumDayTypes()]
+        self.rateAcute = self.__capReleasePolicy.getAcuteDemand(
+            simulationDay % self.__capReleasePolicy.getNumDayTypes())
         self.simulationDay = simulationDay
         self.scheduled = 0
         self.anticipatedUtilized = 0
@@ -338,14 +343,17 @@ class clDay(object):
         """
         # acute requests are random
         numAcuteRequests = numpy.random.poisson(self.rateAcute)
+
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
+
         assert acuteScheduled >= 0, "error, more scheduled then released capacity"
         # modify anticipated utilization
         self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
         self.scheduled = self.scheduled + acuteScheduled
         # now figure out how many would need follow-up
         followUpNeeded = numpy.random.binomial(self.anticipatedUtilized, self.__probFollowUpNeeded)
+        print numAcuteRequests, acuteScheduled, numAcuteRequests - acuteScheduled, followUpNeeded
         return (numAcuteRequests, acuteScheduled, numAcuteRequests - acuteScheduled, followUpNeeded)
 
     def scheduleAcuteAndFollowUp(self, acuteNeededToSchedule, followUpNeededToSchedule):
@@ -358,6 +366,9 @@ class clDay(object):
         acuteRemainingToSchedule = acuteNeededToSchedule
         followUpRemainingToSchedule = followUpNeededToSchedule
         daysTillAppt = self.simulationDay - self.__currentDay
+
+        #print acuteRemainingToSchedule, followUpRemainingToSchedule, daysTillAppt
+
         if daysTillAppt <= self.__maxDelayAcute:
             acuteScheduled = max(0, min(self.releasedCap - self.scheduled, acuteNeededToSchedule))
             assert acuteScheduled >= 0, "error, more acute scheduled then released capacity"
@@ -395,8 +406,10 @@ class clDay(object):
 
         :return:
         """
-        self.releasedCap = self.__capReleasePolicy.getCapToRelease(self.rateAcute,
+
+        self.releasedCap = self.__capReleasePolicy.getCapToRelease(self.simulationDay % self.__capReleasePolicy.getNumDayTypes(),
                                                                    self.simulationDay - self.__currentDay)
+
         return self.releasedCap
 
 
