@@ -20,30 +20,12 @@ def get_configs():
 
     :return:
     """
-    df = pd.read_excel("configs.xlsx", sheet_name="conf")
 
-    configs = []
-    policies = []
-    for i in range(len(df)):
-        simulation = dict(H=df.H[i],
-                          c=df.c[i],
-                          D=df.D[i],
-                          Ha=df.Ha[i],
-                          Pf=df.Pf[i],
-                          Hf=df.Hf[i],
-                          gamma=df.gamma[i],
-                          beta=df.beta[i],
-                          lam=8.5*(1.-df.Pf[i]),
-                          theta=df.theta[i]
-                          )
+    pol_df = pd.read_excel("configs.xlsx", sheet_name="policies")
 
-        pol_df = pd.read_excel("configs.xlsx", sheet_name="policies")
+    policies = build_policies(pol_df)
 
-        policies = build_policies(pol_df)
-
-        configs.append(simulation)
-
-    return configs, policies
+    return policies
 
 
 def build_policies(pol_df):

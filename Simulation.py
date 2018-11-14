@@ -15,15 +15,18 @@ class SimGui(wx.Frame):
         self.B_Upper = None
         self.T_Upper= None
 
+        self.Inc_Label = None
+        self.Upper_Label = None
+
         self.InitUI()
 
     def InitUI(self):
         self.pnl = wx.Panel(self)
 
-        closeButton = wx.Button(self.pnl, label='Run Simulation', pos=(200, 400))
+        closeButton = wx.Button(self.pnl, label='Run Simulation', pos=(150, 320))
         closeButton.Bind(wx.EVT_BUTTON, self.RunSim)
 
-        params = wx.StaticBox(self.pnl, label="Parameters", pos=(10, 10), size=(400, 350))
+        params = wx.StaticBox(self.pnl, label="Parameters", pos=(5, 1), size=(420, 350))
 
         """ ================= Test Values ================= """
 
@@ -63,126 +66,216 @@ class SimGui(wx.Frame):
 
         wx.StaticText(self.pnl, label="Test Range?", pos=(200, 20))
 
-        self.H_range_box = wx.CheckBox(self.pnl,label="", pos=(220, 35))
+        self.H_range_box = wx.CheckBox(self.pnl,label="", pos=(225, 35))
         self.Bind(wx.EVT_CHECKBOX, self.H_range_check, self.H_range_box)
 
-        self.C_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 65))
+        self.C_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 65))
         self.Bind(wx.EVT_CHECKBOX, self.C_range_check, self.C_range_box)
 
-        self.D_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 95))
+        self.D_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 95))
         self.Bind(wx.EVT_CHECKBOX, self.D_range_check, self.D_range_box)
 
-        self.Ha_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 125))
+        self.Ha_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 125))
         self.Bind(wx.EVT_CHECKBOX, self.Ha_range_check, self.Ha_range_box)
 
-        self.Pf_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 155))
+        self.Pf_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 155))
         self.Bind(wx.EVT_CHECKBOX, self.Pf_range_check, self.Pf_range_box)
 
-        self.Hf_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 185))
+        self.Hf_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 185))
         self.Bind(wx.EVT_CHECKBOX, self.Hf_range_check, self.Hf_range_box)
 
-        self.G_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 215))
+        self.G_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 215))
         self.Bind(wx.EVT_CHECKBOX, self.G_range_check, self.G_range_box)
 
-        self.B_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 245))
+        self.B_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 245))
         self.Bind(wx.EVT_CHECKBOX, self.B_range_check, self.B_range_box)
 
-        self.T_range_box = wx.CheckBox(self.pnl, label="", pos=(220, 275))
+        self.T_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 275))
         self.Bind(wx.EVT_CHECKBOX, self.T_range_check, self.T_range_box)
 
-        self.SetSize((500, 500))
+        self.SetSize((450, 390))
         self.SetTitle('Simulation Parameters')
         self.Centre()
 
     def H_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.H_range_box.GetValue():
-            self.H_Upper = wx.SpinCtrl(self.pnl, value=str(self.H.GetValue()+1), pos=(275, 30), size=(60, -1), min=self.H.GetValue()+1, max=360)
+            self.H_Upper = wx.SpinCtrl(self.pnl, value=str(self.H.GetValue()+1), pos=(275, 30), size=(60, -1), min=self.H.GetValue()+1, max=365)
+            self.H_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 30), size=(60, -1), min=1, max=365)
         else:
             self.H_Upper.Hide()
+            self.H_Step.Hide()
             self.H_Upper = None
+            self.H_Step = None
         return True
 
     def C_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.C_range_box.GetValue():
             self.C_Upper = wx.SpinCtrl(self.pnl, value=str(self.C.GetValue()+1), pos=(275, 60), size=(60, -1), min=self.C.GetValue()+1, max=50)
+            self.C_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 60), size=(60, -1), min=1, max=50)
         else:
             self.C_Upper.Hide()
+            self.C_Step.Hide()
             self.C_Upper = None
+            self.C_Step= None
+
         return True
 
     def D_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.D_range_box.GetValue():
             self.D_Upper = wx.SpinCtrl(self.pnl, value=str(self.D.GetValue()+1), pos=(275, 90), size=(60, -1), min=self.D.GetValue()+1, max=7)
+            self.D_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 90), size=(60, -1), min=1, max=3)
         else:
             self.D_Upper.Hide()
+            self.D_Step.Hide()
             self.D_Upper = None
+            self.D_Step = None
         return True
 
     def Ha_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.Ha_range_box.GetValue():
-            self.Ha_Upper = wx.SpinCtrl(self.pnl, value=str(self.Ha.GetValue()+1), pos=(275, 120), size=(60, -1), min=self.Ha.GetValue()+1, max=360)
+            self.Ha_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 120), size=(60, -1), min=1, max=365)
+            self.Ha_Upper = wx.SpinCtrl(self.pnl, value=str(self.Ha.GetValue()+1), pos=(275, 120), size=(60, -1), min=self.Ha.GetValue()+1, max=365)
         else:
             self.Ha_Upper.Hide()
+            self.Ha_Step.Hide()
             self.Ha_Upper = None
+            self.Ha_Step = None
 
         return True
 
     def Pf_range_check(self, e):
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.Pf_range_box.GetValue():
             self.Pf_Upper = wx.SpinCtrlDouble(self.pnl, value=str(self.Pf.GetValue()+0.01), pos=(275, 150), size=(60, -1), min=0.0, max=1.0,
                                     initial=self.Pf.GetValue()+0.01, inc=0.01)
+            self.Pf_Step = wx.SpinCtrlDouble(self.pnl, value=str(0.01), pos=(350, 150),
+                                              size=(60, -1), min=0.0, max=1.0,
+                                              initial=0.01, inc=0.01)
         else:
             self.Pf_Upper.Hide()
+            self.Pf_Step.Hide()
+            self.Pf_Step = None
             self.Pf_Upper = None
         return True
 
     def Hf_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.Hf_range_box.GetValue():
-            self.Hf_Upper = wx.SpinCtrl(self.pnl, value=str(self.Hf.GetValue()+1), pos=(275, 180), size=(60, -1), min=self.Hf.GetValue()+1, max=360)
+            self.Hf_Upper = wx.SpinCtrl(self.pnl, value=str(self.Hf.GetValue()+1), pos=(275, 180), size=(60, -1), min=self.Hf.GetValue()+1, max=365)
+            self.Hf_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 180), size=(60, -1), min=1, max=365)
         else:
             self.Hf_Upper.Hide()
+            self.Hf_Step.Hide()
+            self.Hf_Step = None
             self.Hf_Upper = None
         return True
 
     def G_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.G_range_box.GetValue():
             self.G_Upper = wx.SpinCtrlDouble(self.pnl, value=str(self.G.GetValue()+0.01), pos=(275, 210), size=(60, -1), min=0.0, max=1.0,
                                     initial=self.G.GetValue()+0.01, inc=0.01)
+            self.G_Step = wx.SpinCtrlDouble(self.pnl, value=str(0.01), pos=(350, 210),
+                                         size=(60, -1), min=0.0, max=1.0,
+                                         initial=0.01, inc=0.01)
         else:
             self.G_Upper.Hide()
+            self.G_Step.Hide()
+            self.G_Step = None
             self.G_Upper = None
+
         return True
 
     def B_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.B_range_box.GetValue():
             self.B_Upper = wx.SpinCtrlDouble(self.pnl, value=str(self.B.GetValue()+0.01), pos=(275, 240), size=(60, -1), min=0.0, max=1.0,
                             initial=self.B.GetValue()+0.01, inc=0.01)
+            self.B_Step = wx.SpinCtrlDouble(self.pnl, value=str(0.01), pos=(350, 240),
+                                             size=(60, -1), min=0.0, max=1.0,
+                                             initial=0.01, inc=0.01)
         else:
             self.B_Upper.Hide()
+            self.B_Step.Hide()
+            self.B_Step = None
             self.B_Upper = None
         return True
 
     def T_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
         if self.T_range_box.GetValue():
             self.T_Upper = wx.SpinCtrlDouble(self.pnl, value=str(self.T.GetValue()+0.01), pos=(275, 270), size=(60, -1), min=0.0, max=1.0,
                                     initial=self.T.GetValue()+0.01, inc=0.01)
+            self.T_Step = wx.SpinCtrlDouble(self.pnl, value=str(0.01), pos=(350, 270),
+                                             size=(60, -1), min=0.0, max=1.0,
+                                             initial=0.01, inc=0.01)
         else:
             self.T_Upper.Hide()
+            self.T_Step.Hide()
+            self.T_Step = None
             self.T_Upper = None
 
         return True
 
     def RunSim(self, e):
 
-        self.H_Range = list(numpy.arange(self.H.GetValue(), self.H.GetValue()+1, 1)) if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, 1))
-        self.C_Range = list(numpy.arange(self.C.GetValue(), self.C.GetValue()+1, 1)) if not self.C_Upper else list(numpy.arange(self.C.GetValue(), self.C_Upper.GetValue()+1, 1))
-        self.D_Range =  list(numpy.arange(self.D.GetValue(), self.D.GetValue()+1, 1)) if not self.D_Upper else list(numpy.arange(self.D.GetValue(), self.D_Upper.GetValue()+1, 1))
-        self.Ha_Range = list(numpy.arange(self.Ha.GetValue(), self.Ha.GetValue()+1, 1)) if not self.Ha_Upper else list(numpy.arange(self.Ha.GetValue(), self.Ha_Upper.GetValue()+1, 1))
-        self.Pf_Range = list(numpy.arange(self.Pf.GetValue(), self.Pf.GetValue()+0.01, 0.01)) if not self.Pf_Upper else list(numpy.arange(self.Pf.GetValue(), self.Pf_Upper.GetValue()+0.01, 0.01))
-        self.Hf_Range =  list(numpy.arange(self.Hf.GetValue(), self.Hf.GetValue()+1, 1)) if not self.Hf_Upper else list(numpy.arange(self.Hf.GetValue(), self.Hf_Upper.GetValue()+1, 1))
-        self.G_Range =  list(numpy.arange(self.G.GetValue(), self.G.GetValue()+0.01, 0.01)) if not self.G_Upper else list(numpy.arange(self.G.GetValue(), self.G_Upper.GetValue()+0.01, 0.01))
-        self.B_Range =  list(numpy.arange(self.B.GetValue(), self.B.GetValue()+0.01, 0.01)) if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, 0.01))
-        self.T_Range =  list(numpy.arange(self.T.GetValue(), self.T.GetValue()+0.01, 0.1)) if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, 0.01))
+        self.H_Range = list(numpy.arange(self.H.GetValue(), self.H.GetValue()+1, 1)) if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, self.H_Step.GetValue()))
+        self.C_Range = list(numpy.arange(self.C.GetValue(), self.C.GetValue()+1, 1)) if not self.C_Upper else list(numpy.arange(self.C.GetValue(), self.C_Upper.GetValue()+1, self.C_Step.GetValue()))
+        self.D_Range =  list(numpy.arange(self.D.GetValue(), self.D.GetValue()+1, 1)) if not self.D_Upper else list(numpy.arange(self.D.GetValue(), self.D_Upper.GetValue()+1, self.D_Step.GetValue()))
+        self.Ha_Range = list(numpy.arange(self.Ha.GetValue(), self.Ha.GetValue()+1, 1)) if not self.Ha_Upper else list(numpy.arange(self.Ha.GetValue(), self.Ha_Upper.GetValue()+1, self.Ha_Step.GetValue()))
+        self.Pf_Range = list(numpy.arange(self.Pf.GetValue(), self.Pf.GetValue()+0.01, 0.01)) if not self.Pf_Upper else list(numpy.arange(self.Pf.GetValue(), self.Pf_Upper.GetValue()+0.01, self.Pf_Step.GetValue()))
+        self.Hf_Range =  list(numpy.arange(self.Hf.GetValue(), self.Hf.GetValue()+1, 1)) if not self.Hf_Upper else list(numpy.arange(self.Hf.GetValue(), self.Hf_Upper.GetValue()+1, self.Hf_Step.GetValue()))
+        self.G_Range =  list(numpy.arange(self.G.GetValue(), self.G.GetValue()+0.01, 0.01)) if not self.G_Upper else list(numpy.arange(self.G.GetValue(), self.G_Upper.GetValue()+0.01, self.G_Step.GetValue()))
+        self.B_Range =  list(numpy.arange(self.B.GetValue(), self.B.GetValue()+0.01, 0.01)) if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, self.B_Step.GetValue()))
+        self.T_Range =  list(numpy.arange(self.T.GetValue(), self.T.GetValue()+0.01, 0.1)) if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, self.T_Step.GetValue()))
 
         self.Close()
 
@@ -192,7 +285,11 @@ if __name__ == '__main__':
     ex.Show()
     app.MainLoop()
 
-    AppointmentSim.main(ex.H_Range, ex.C_Range, ex.D_Range, ex.Ha_Range, ex.Pf_Range, ex.Hf_Range, ex.G_Range,
+    try:
+        AppointmentSim.main(ex.H_Range, ex.C_Range, ex.D_Range, ex.Ha_Range, ex.Pf_Range, ex.Hf_Range, ex.G_Range,
                         ex.B_Range, ex.T_Range)
+    except AttributeError:
+        print "\n[!!!] Simulation Not Run, exiting..."
+        exit(1)
 
 

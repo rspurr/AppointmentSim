@@ -3,23 +3,24 @@ import config
 from pprint import pprint
 
 class clCapacityReleasePolicy(object):
-    __maxCapacity = 10
-    __lstDayTypes = [4, 7]
-    __planningHorizonLength = 4
-    __policyDict = {}
 
-    def __init__(self, avgRate=5.5, theta=7 / 5, policy=None):
+    def __init__(self, maxCap, horizon, avgRate=5.5, theta=7 / 5, policy=None):
+        self.__maxCapacity = maxCap
+        # didctated by policy
+        self.__lstDayTypes = []
+        self.__planningHorizonLength = horizon
+        self.__policyDict = {}
+
         if policy is not None:
             self.__lstDayTypes = policies[policy].keys()
             self.__acuteDemandDict = {}
             if theta == 1.0:
                 for day in self.__lstDayTypes:
-                    print "Day {}".format(day)
                     self.__acuteDemandDict[day] = avgRate
             else:
                 # TODO: Ask about theta and how it will be affected w/ more daytypes
-                self.__acuteDemandDict[0] = (2 - theta) * avgRate
-                self.__acuteDemandDict[1] = theta * avgRate
+                self.__acuteDemandDict[0.0] = (2 - theta) * avgRate
+                self.__acuteDemandDict[1.0] = theta * avgRate
 
             # enter capacity release policy for each day type
             for dayType in self.__lstDayTypes:
@@ -150,7 +151,7 @@ class clCapacityReleasePolicy(object):
 
         if dayTypeKey in self.__policyDict.keys():
             if daysTilTodayKey in self.__policyDict[dayTypeKey].keys():
-                print "{} -> {} -> {}".format(dayTypeKey, daysTilTodayKey, self.__policyDict[dayTypeKey][daysTilTodayKey])
+                # print "{} -> {} -> {}".format(dayTypeKey, daysTilTodayKey, self.__policyDict[dayTypeKey][daysTilTodayKey])
                 return self.__policyDict[dayTypeKey][daysTilTodayKey]
         return 0
 
@@ -170,12 +171,12 @@ class clCapacityReleasePolicy(object):
 class clAppointmentSimulation(object):
 
     def __init__(self, maxDelayAcute, probFollowUpNeeded, minDelayFollowUp, onePeriodCancelProb, probCancelAnnounced,
-                 theta, policyType):
+                 theta, maxCapacity, horizon, policyType):
 
         # average demand
         averageAcuteDemand = 8.5 * (1. - probFollowUpNeeded)
         # initialize capacity release policy
-        self.capReleasePolicy = clCapacityReleasePolicy(averageAcuteDemand, theta, policyType)
+        self.capReleasePolicy = clCapacityReleasePolicy(maxCapacity, horizon, averageAcuteDemand, theta, policyType)
         # get data from capacity release policy for easy access
         self.lenPlanningHorizon = self.capReleasePolicy.getLenPlanningHorizon() + 1
         self.numDayTypes = self.capReleasePolicy.getNumDayTypes()
@@ -339,11 +340,10 @@ class clDay(object):
         # acute requests are random
 
         numAcuteRequests = numpy.random.poisson(self.rateAcute)
-        print "NumAcute = {}".format(numAcuteRequests)
+
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
-        print "Released Capacity = {}".format(self.releasedCap)
-        print "Scheduled  = {}".format(acuteScheduled)
+
         assert acuteScheduled >= 0, "error, more scheduled then released capacity"
         # modify anticipated utilization
         self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
@@ -363,8 +363,6 @@ class clDay(object):
         acuteRemainingToSchedule = acuteNeededToSchedule
         followUpRemainingToSchedule = followUpNeededToSchedule
         daysTillAppt = self.simulationDay - self.__currentDay
-
-        #print acuteRemainingToSchedule, followUpRemainingToSchedule, daysTillAppt
 
         if daysTillAppt <= self.__maxDelayAcute:
             acuteScheduled = max(0, min(self.releasedCap - self.scheduled, acuteNeededToSchedule))
@@ -414,27 +412,30 @@ n = 1000
 lstResults = []
 myResultDict = {}
 
-configs, policies = config.get_configs()
+policies = config.get_configs()
 
 def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range):
 
-    
+
     maxDelayAcute = Ha_Range[0]
     minDelayFollowUp = Hf_Range[0]
 
     print H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range
 
-    for probFollowUpNeeded in Pf_Range:
-        for onePeriodCancelProb in [0.1, 0.25]:
-            for probCancelAnnounced in [0.3, 0.7]:
-                for theta in [1, 1.2, 1.5]:
-                    for policyType in [1]:
-                        # initialize random number generator, so we can get repeatable results
-                        numpy.random.seed(1234)
-                        # run the test
-                        test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
-                                                       onePeriodCancelProb, probCancelAnnounced, theta, policyType)
-                        lstResults.append(test.runSimulation(n))
+    for horizon in H_Range:
+        for capacity in C_Range:
+            for probFollowUpNeeded in Pf_Range:
+                for onePeriodCancelProb in G_Range:
+                    for probCancelAnnounced in B_Range:
+                        for theta in T_Range:
+                            for policyType in [1]:
+                                # initialize random number generator, so we can get repeatable results
+                                numpy.random.seed(1234)
+                                # run the test
+                                test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
+                                                               onePeriodCancelProb, probCancelAnnounced, theta,
+                                                               capacity,horizon,policyType)
+                                lstResults.append(test.runSimulation(n))
 
 
     import pandas as pd
