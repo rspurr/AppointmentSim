@@ -1,5 +1,6 @@
 import numpy.random
 import config
+from pprint import pprint
 
 class clCapacityReleasePolicy(object):
     __maxCapacity = 10
@@ -8,18 +9,18 @@ class clCapacityReleasePolicy(object):
     __policyDict = {}
 
     def __init__(self, avgRate=5.5, theta=7 / 5, policy=None):
-
         if policy is not None:
-            self.__lstDayTypes = policy.keys()
+            self.__lstDayTypes = policies[policy].keys()
             self.__acuteDemandDict = {}
-            if theta == 1:
-                for i, day in enumerate(self.__lstDayTypes):
+            if theta == 1.0:
+                for day in self.__lstDayTypes:
                     print "Day {}".format(day)
                     self.__acuteDemandDict[day] = avgRate
             else:
                 # TODO: Ask about theta and how it will be affected w/ more daytypes
-                self.__lstDayTypes[0] = (2 - theta) * avgRate
-                self.__lstDayTypes[1] = theta * avgRate
+                self.__acuteDemandDict[0] = (2 - theta) * avgRate
+                self.__acuteDemandDict[1] = theta * avgRate
+
             # enter capacity release policy for each day type
             for dayType in self.__lstDayTypes:
                 self.__policyDict[dayType] = {}
@@ -29,18 +30,16 @@ class clCapacityReleasePolicy(object):
                 # on the last day release maximum
                 self.__addCapacity(dayType, 0, self.__maxCapacity)
 
-            day_types = sorted(policy.keys())
-            days_from_today = []
-            cap_released = []
+            dayTypes = sorted(policies[policy].keys())
+            daysFromToday = []
+            capReleased = []
 
-            for day in day_types:
+            for day in dayTypes:
                 # print policy[day]
-                days_from_today.append(policy[day]['DaysUntil'])
-                cap_released.append(policy[day]['CapRel'])
+                daysFromToday.append(policies[policy][day]['DaysUntil'])
+                capReleased.append(policies[policy][day]['CapRel'])
 
-            # print day_types, days_from_today, cap_released
-
-            self.add_capacities(days_from_today, cap_released)
+            self.add_capacities(daysFromToday, capReleased)
         else:
             print "Policy not found, defaulting to policy 1"
             self.add_policy_1()
@@ -57,45 +56,40 @@ class clCapacityReleasePolicy(object):
         :return:
         """
 
-        days_from_today = [self.__planningHorizonLength]
-        cap_released = [[self.__maxCapacity]] * len(self.__lstDayTypes)
+        daysFromToday = [self.__planningHorizonLength]
+        capReleased = [[self.__maxCapacity]] * len(self.__lstDayTypes)
 
-        self.add_capacities(self.__lstDayTypes, days_from_today, cap_released)
+        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
 
     def add_policy_2(self):
-        #### adding policy for the first day type
 
-        days_from_today =  [4, 3, 2, 1]
-        cap_released =    [[6, 7, 8, 9]]*len(self.__lstDayTypes)
+        daysFromToday =  [4, 3, 2, 1]
+        capReleased =    [[6, 7, 8, 9]]*len(self.__lstDayTypes)
 
-        self.add_capacities(self.__lstDayTypes, days_from_today, cap_released)
+        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
 
     def add_policy_3(self):
         #### adding policy for the first day type
 
-        days_from_today =  [4, 3, 2, 1]
-        cap_released =    [[2, 4, 6, 8]]*len(self.__lstDayTypes)
+        daysFromToday =  [4, 3, 2, 1]
+        capReleased =    [[2, 4, 6, 8]]*len(self.__lstDayTypes)
 
-        self.add_capacities(self.__lstDayTypes, days_from_today, cap_released)
-
+        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
 
     def add_policy_4(self):
-        #### adding policy for the first day type
+        daysFromToday =  [4, 3, 2, 1]
+        capReleased =    [[0, 1, 4, 7]]*len(self.__lstDayTypes)
 
-        days_from_today =  [4, 3, 2, 1]
-        cap_released =    [[0, 1, 4, 7]]*len(self.__lstDayTypes)
-
-        self.add_capacities(self.__lstDayTypes, days_from_today, cap_released)
+        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
 
     def add_policy_5(self):
-        # get low and high day types
         dayTypeLow, dayTypeHigh = self.__lstDayTypes[0], self.__lstDayTypes[1]
 
-        days_from_today =  [4, 3, 2, 1]
-        cap_released    = [[6, 7, 8, 9],  # LOW
+        daysFromToday =  [4, 3, 2, 1]
+        capReleased    = [[6, 7, 8, 9],  # LOW
                            [2, 4, 6, 8]]  # HIGH
 
-        self.add_capacities([dayTypeLow, dayTypeHigh], days_from_today, cap_released)
+        self.add_capacities([dayTypeLow, dayTypeHigh], daysFromToday, capReleased)
 
     def add_policy_6(self):
 
@@ -129,7 +123,6 @@ class clCapacityReleasePolicy(object):
                 # perform error checking
                 assert lstCapacityReleased[i][j] <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
-                #print self.__policyDict[dayType][daysUntil - 1], lstCapacityReleased[i][j],
                 assert self.__policyDict[dayType][daysUntil - 1] >= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
 
                 self.__policyDict[dayType][daysUntil] = max(0, lstCapacityReleased[i][j])
@@ -154,8 +147,10 @@ class clCapacityReleasePolicy(object):
         :param daysTilTodayKey:
         :return:
         """
+
         if dayTypeKey in self.__policyDict.keys():
             if daysTilTodayKey in self.__policyDict[dayTypeKey].keys():
+                print "{} -> {} -> {}".format(dayTypeKey, daysTilTodayKey, self.__policyDict[dayTypeKey][daysTilTodayKey])
                 return self.__policyDict[dayTypeKey][daysTilTodayKey]
         return 0
 
@@ -342,18 +337,20 @@ class clDay(object):
         :return:
         """
         # acute requests are random
-        numAcuteRequests = numpy.random.poisson(self.rateAcute)
 
+        numAcuteRequests = numpy.random.poisson(self.rateAcute)
+        print "NumAcute = {}".format(numAcuteRequests)
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
-
+        print "Released Capacity = {}".format(self.releasedCap)
+        print "Scheduled  = {}".format(acuteScheduled)
         assert acuteScheduled >= 0, "error, more scheduled then released capacity"
         # modify anticipated utilization
         self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
         self.scheduled = self.scheduled + acuteScheduled
         # now figure out how many would need follow-up
         followUpNeeded = numpy.random.binomial(self.anticipatedUtilized, self.__probFollowUpNeeded)
-        print numAcuteRequests, acuteScheduled, numAcuteRequests - acuteScheduled, followUpNeeded
+
         return (numAcuteRequests, acuteScheduled, numAcuteRequests - acuteScheduled, followUpNeeded)
 
     def scheduleAcuteAndFollowUp(self, acuteNeededToSchedule, followUpNeededToSchedule):
@@ -413,35 +410,32 @@ class clDay(object):
         return self.releasedCap
 
 
-if __name__ == "__main__":
+n = 1000
+lstResults = []
+myResultDict = {}
 
-    maxDelayAcute = 2
-    minDelayFollowUp = 2
-    n = 1000
-    lstResults = []
-    myResultDict = {}
+configs, policies = config.get_configs()
 
-    # TODO: Test over a range of values ?
+def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range):
 
-    # for probFollowUpNeeded in [0.2, 0.5]:
-    #     for onePeriodCancelProb in [0.1, 0.25]:
-    #         for probCancelAnnounced in [0.3, 0.7]:
-    #             for theta in [1, 1.2, 1.5]:
-    #                 for policyType in [1]:
-    #                     # initialize random number generator, so we can get repeatable results
-    #                     numpy.random.seed(1234)
-    #                     # run the test
-    #                     test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
-    #                                                    onePeriodCancelProb, probCancelAnnounced, theta, policyType)
-    #                     lstResults.append(test.runSimulation(n))
+    
+    maxDelayAcute = Ha_Range[0]
+    minDelayFollowUp = Hf_Range[0]
 
-    configs, policies = config.get_configs()
-    for config in configs:
-        for k, v in policies.iteritems():
-            numpy.random.seed(1234)
-            test = clAppointmentSimulation(config['Ha'], config['Pf'], config['Hf'],
-                                           config['Pf'], config['beta'], config['theta'], v)
-            lstResults.append(test.runSimulation(n))
+    print H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range
+
+    for probFollowUpNeeded in Pf_Range:
+        for onePeriodCancelProb in [0.1, 0.25]:
+            for probCancelAnnounced in [0.3, 0.7]:
+                for theta in [1, 1.2, 1.5]:
+                    for policyType in [1]:
+                        # initialize random number generator, so we can get repeatable results
+                        numpy.random.seed(1234)
+                        # run the test
+                        test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
+                                                       onePeriodCancelProb, probCancelAnnounced, theta, policyType)
+                        lstResults.append(test.runSimulation(n))
+
 
     import pandas as pd
 
@@ -451,5 +445,4 @@ if __name__ == "__main__":
     writer = ExcelWriter('PythonExport.xlsx')
     df.to_excel(writer, 'Sheet1')
     writer.save()
-
 
