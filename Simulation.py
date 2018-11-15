@@ -1,4 +1,6 @@
-import wx, AppointmentSim, numpy
+import wx
+import AppointmentSim
+import numpy
 
 
 class SimGui(wx.Frame):
@@ -267,29 +269,26 @@ class SimGui(wx.Frame):
 
     def RunSim(self, e):
 
-        self.H_Range = list(numpy.arange(self.H.GetValue(), self.H.GetValue()+1, 1)) if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, self.H_Step.GetValue()))
-        self.C_Range = list(numpy.arange(self.C.GetValue(), self.C.GetValue()+1, 1)) if not self.C_Upper else list(numpy.arange(self.C.GetValue(), self.C_Upper.GetValue()+1, self.C_Step.GetValue()))
-        self.D_Range =  list(numpy.arange(self.D.GetValue(), self.D.GetValue()+1, 1)) if not self.D_Upper else list(numpy.arange(self.D.GetValue(), self.D_Upper.GetValue()+1, self.D_Step.GetValue()))
-        self.Ha_Range = list(numpy.arange(self.Ha.GetValue(), self.Ha.GetValue()+1, 1)) if not self.Ha_Upper else list(numpy.arange(self.Ha.GetValue(), self.Ha_Upper.GetValue()+1, self.Ha_Step.GetValue()))
-        self.Pf_Range = list(numpy.arange(self.Pf.GetValue(), self.Pf.GetValue()+0.01, 0.01)) if not self.Pf_Upper else list(numpy.arange(self.Pf.GetValue(), self.Pf_Upper.GetValue()+0.01, self.Pf_Step.GetValue()))
-        self.Hf_Range =  list(numpy.arange(self.Hf.GetValue(), self.Hf.GetValue()+1, 1)) if not self.Hf_Upper else list(numpy.arange(self.Hf.GetValue(), self.Hf_Upper.GetValue()+1, self.Hf_Step.GetValue()))
-        self.G_Range =  list(numpy.arange(self.G.GetValue(), self.G.GetValue()+0.01, 0.01)) if not self.G_Upper else list(numpy.arange(self.G.GetValue(), self.G_Upper.GetValue()+0.01, self.G_Step.GetValue()))
-        self.B_Range =  list(numpy.arange(self.B.GetValue(), self.B.GetValue()+0.01, 0.01)) if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, self.B_Step.GetValue()))
-        self.T_Range =  list(numpy.arange(self.T.GetValue(), self.T.GetValue()+0.01, 0.1)) if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, self.T_Step.GetValue()))
+        self.H_Range = [self.H.GetValue()] if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, self.H_Step.GetValue()))
+        self.C_Range = [self.C.GetValue()] if not self.C_Upper else list(numpy.arange(self.C.GetValue(), self.C_Upper.GetValue()+1, self.C_Step.GetValue()))
+        self.D_Range = [self.D.GetValue()] if not self.D_Upper else list(numpy.arange(self.D.GetValue(), self.D_Upper.GetValue()+1, self.D_Step.GetValue()))
+        self.Ha_Range = [self.Ha.GetValue()] if not self.Ha_Upper else list(numpy.arange(self.Ha.GetValue(), self.Ha_Upper.GetValue()+1, self.Ha_Step.GetValue()))
+        self.Pf_Range = [self.Pf.GetValue()] if not self.Pf_Upper else list(numpy.arange(self.Pf.GetValue(), self.Pf_Upper.GetValue()+0.01, self.Pf_Step.GetValue()))
+        self.Hf_Range =  [self.Hf.GetValue()] if not self.Hf_Upper else list(numpy.arange(self.Hf.GetValue(), self.Hf_Upper.GetValue()+1, self.Hf_Step.GetValue()))
+        self.G_Range =  [self.G.GetValue()] if not self.G_Upper else list(numpy.arange(self.G.GetValue(), self.G_Upper.GetValue()+0.01, self.G_Step.GetValue()))
+        self.B_Range =  [self.B.GetValue()] if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, self.B_Step.GetValue()))
+        self.T_Range =  [self.T.GetValue()] if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, self.T_Step.GetValue()))
 
         self.Close()
+
+        AppointmentSim.main(self.H_Range, self.C_Range, self.D_Range, self.Ha_Range, self.Pf_Range, self.Hf_Range, self.G_Range,
+                            self.B_Range, self.T_Range)
+
 
 if __name__ == '__main__':
     app = wx.App()
     ex = SimGui(None)
     ex.Show()
     app.MainLoop()
-
-    try:
-        AppointmentSim.main(ex.H_Range, ex.C_Range, ex.D_Range, ex.Ha_Range, ex.Pf_Range, ex.Hf_Range, ex.G_Range,
-                        ex.B_Range, ex.T_Range)
-    except AttributeError:
-        print "\n[!!!] Simulation Not Run, exiting..."
-        exit(1)
 
 
