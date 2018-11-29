@@ -1,18 +1,14 @@
 from pprint import pprint
 
 import pandas as pd
+import numpy as np
 
 
-parameters = {
-    "H": 0,
-    "c": 0,
-    "D": 0,
-    "Ha": 0,
-    "Pf": 0.0,
-    "Hf": 0,
-    "gamma": 0.0,
-    "beta": 0.0
-}
+def make_policies(alpha, beta):
+    print np.random.beta(0.03, 0.12)
+
+
+
 
 
 def get_configs():
@@ -53,3 +49,35 @@ def build_policies(pol_df):
                                                                  "CapRel": [pol_df.CapRel[j]]}
 
     return policies
+
+if __name__ == "__main__":
+    from scipy.stats import beta
+    import matplotlib.pyplot as plt
+    import math
+    from random import uniform
+
+    fig, ax = plt.subplots(1, 1)
+
+    a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
+
+    x = np.linspace(0, 1.0, num=4)
+
+    vals = beta.ppf(x, a, b)
+
+    rev_x = list(reversed(x))
+    rev_vals =  list(reversed(vals))
+
+    mult_by = lambda x: x*10
+    mult_vals = map(mult_by, list(reversed(vals)))
+    f = lambda x: math.floor(x)
+
+    floor_vals =  map(f, list(reversed(mult_vals)))
+
+    print list(x)
+    print floor_vals
+
+    ax.plot(vals, beta.cdf(vals, a, b),
+            'g-', lw=4, alpha=0.6, label='beta cdf')
+
+
+    plt.show()
