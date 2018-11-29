@@ -39,7 +39,7 @@ def build_policies():
     rel_scheds = []
     for i in range(0, 10):
         for j in range(0, len(day_types)):
-            print i, j
+
             schedule, vals, a, b = generate_policy(H, capacity)
             added = False
 

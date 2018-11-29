@@ -36,7 +36,6 @@ class clCapacityReleasePolicy(object):
             capReleased = []
 
             for day in dayTypes:
-                # print policy[day]
                 daysFromToday.append(policies[policy][day]['DaysUntil'])
                 capReleased.append(policies[policy][day]['CapRel'])
 
@@ -364,7 +363,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
     maxDelayAcute = Ha_Range[0]
     minDelayFollowUp = Hf_Range[0]
 
-    print H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range
+    # print H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range
 
     for horizon in H_Range:
         for capacity in C_Range:
