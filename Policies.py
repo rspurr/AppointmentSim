@@ -54,30 +54,40 @@ if __name__ == "__main__":
     from scipy.stats import beta
     import matplotlib.pyplot as plt
     import math
-    from random import uniform
+    from pprint import pprint
+    from random import uniform, random
+
+    H = 5
 
     fig, ax = plt.subplots(1, 1)
+    policies = {}
 
-    a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
+    for i in range(0, 10):
+        # generate a random alpha and beta
+        a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
+        # generate x values ( days until ? )
+        x = np.linspace(0, 1.0, num=H)
+        days_until = list(range(1, H+1))
+        # create percentage point function
+        vals = beta.ppf(x, a, b)
 
-    x = np.linspace(0, 1.0, num=4)
+        # reverse our values to emulate days until
+        rev_vals =  list(reversed(vals))
 
-    vals = beta.ppf(x, a, b)
+        mult_by = lambda x: x*10
+        mult_vals = map(mult_by, rev_vals)
+        f = lambda x: int(math.floor(x))
 
-    rev_x = list(reversed(x))
-    rev_vals =  list(reversed(vals))
+        # floor the values
+        floor_vals =  map(f, mult_vals)
 
-    mult_by = lambda x: x*10
-    mult_vals = map(mult_by, list(reversed(vals)))
-    f = lambda x: math.floor(x)
+        if floor_vals not in policies.values():
+            policies[i] = floor_vals
 
-    floor_vals =  map(f, list(reversed(mult_vals)))
-
-    print list(x)
-    print floor_vals
-
-    ax.plot(vals, beta.cdf(vals, a, b),
-            'g-', lw=4, alpha=0.6, label='beta cdf')
+        ax.plot(vals, beta.cdf(vals, a, b),
+                color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
 
 
     plt.show()
+
+    pprint(policies)

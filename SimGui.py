@@ -287,8 +287,8 @@ class SimGui(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App()
-    ex = SimGui(None)
-    ex.Show()
+    gui = SimGui(None)
+    gui.Show()
     app.MainLoop()
 
 

@@ -1,5 +1,5 @@
 import numpy.random
-import config
+import Policies
 from pprint import pprint
 
 class clCapacityReleasePolicy(object):
@@ -412,7 +412,7 @@ n = 1000
 lstResults = []
 myResultDict = {}
 
-policies = config.get_configs()
+policies = Policies.get_configs()
 
 def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range):
 
