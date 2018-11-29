@@ -1,14 +1,10 @@
-from pprint import pprint
-
 import pandas as pd
 import numpy as np
-
-
-def make_policies(alpha, beta):
-    print np.random.beta(0.03, 0.12)
-
-
-
+from scipy.stats import beta
+import matplotlib.pyplot as plt
+import math
+from pprint import pprint
+from random import uniform, random
 
 
 def get_configs():
@@ -17,77 +13,82 @@ def get_configs():
     :return:
     """
 
-    pol_df = pd.read_excel("configs.xlsx", sheet_name="policies")
-
-    policies = build_policies(pol_df)
+    policies = build_policies()
 
     return policies
 
 
-def build_policies(pol_df):
+def build_policies():
     """
     Build all policies
     :param pol_df:
     :return:
     """
-    policies = {}
-    for j in range(len(pol_df)):
-        if not pd.isna(pol_df.Policy[j]):
-            if pol_df.Policy[j] in policies.keys():
-                # if we've begun building our policy, add the day type and days until/cap release
-                if pol_df.DayType[j] in policies[pol_df.Policy[j]].keys():
-                    policies[pol_df.Policy[j]][pol_df.DayType[j]]['DaysUntil'].append(pol_df.DaysUntil[j])
-                    policies[pol_df.Policy[j]][pol_df.DayType[j]]['CapRel'].append(pol_df.CapRel[j])
-                else:
-                    policies[pol_df.Policy[j]][pol_df.DayType[j]] = {"DaysUntil": [pol_df.DaysUntil[j]],
-                                                                     "CapRel": [pol_df.CapRel[j]]}
-            else:
-                # build new policy
-                policies[pol_df.Policy[j]] = {}
-                # initialize lists for the day type
-                policies[pol_df.Policy[j]][pol_df.DayType[j]] = {"DaysUntil": [pol_df.DaysUntil[j]],
-                                                                 "CapRel": [pol_df.CapRel[j]]}
 
-    return policies
-
-if __name__ == "__main__":
-    from scipy.stats import beta
-    import matplotlib.pyplot as plt
-    import math
-    from pprint import pprint
-    from random import uniform, random
-
+    # TODO: Fetch horizon and day type values from GUI input
     H = 5
+    day_types = [1, 2]
+    capacity = 10
+    days_until = list(range(1, H))
 
     fig, ax = plt.subplots(1, 1)
     policies = {}
-
+    rel_scheds = []
     for i in range(0, 10):
-        # generate a random alpha and beta
-        a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
-        # generate x values ( days until ? )
-        x = np.linspace(0, 1.0, num=H)
-        days_until = list(range(1, H+1))
-        # create percentage point function
-        vals = beta.ppf(x, a, b)
+        for j in range(0, len(day_types)):
+            print i, j
+            vals, schedule = generate_policy(H, capacity)
+            added = False
 
-        # reverse our values to emulate days until
-        rev_vals =  list(reversed(vals))
+            # Loop to ensure we generate a random policy
 
-        mult_by = lambda x: x*10
-        mult_vals = map(mult_by, rev_vals)
-        f = lambda x: int(math.floor(x))
+            while not added:
+                if schedule not in rel_scheds:
 
-        # floor the values
-        floor_vals =  map(f, mult_vals)
-
-        if floor_vals not in policies.values():
-            policies[i] = floor_vals
-
-        ax.plot(vals, beta.cdf(vals, a, b),
-                color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
+                    if i not in policies.keys():
+                        policies[i] = {}
+                    policies[i][j] = {}
+                    policies[i][j]["CapRel"] = schedule[:-1]
+                    policies[i][j]["DaysUntil"] = days_until
+                    rel_scheds.append(schedule)
+                    added = True
+                else:
+                    vals, schedule = generate_policy(H, capacity)
 
 
     plt.show()
 
     pprint(policies)
+    print ""
+    pprint(get_configs())
+
+    return policies
+
+
+def generate_policy(horizon, capacity=10):
+    a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
+    # generate x values ( days until ? )
+    x = np.linspace(0, 1.0, num=horizon)
+
+    # create percentage point function
+    vals = beta.ppf(x, a, b)
+
+    # reverse our values to emulate days until
+    rev_vals = list(reversed(vals))
+
+    # multiply by 9 so our largest value is the daily capacity-1
+    mult_by = lambda x: x * (capacity-1)
+    mult_vals = map(mult_by, rev_vals)
+
+    # floor the values and our day release schedule is ready
+    f = lambda x: int(math.floor(x))
+    day_vals = map(f, mult_vals)
+
+    ax.plot(vals, beta.cdf(vals, a, b),
+            color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
+
+    return vals, day_vals
+
+
+if __name__ == "__main__":
+
