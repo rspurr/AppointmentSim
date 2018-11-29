@@ -7,6 +7,8 @@ from pprint import pprint
 from random import uniform, random
 
 
+fig, ax = plt.subplots(1, 1)
+
 def get_configs():
     """
 
@@ -26,42 +28,42 @@ def build_policies():
     """
 
     # TODO: Fetch horizon and day type values from GUI input
+
     H = 5
     day_types = [1, 2]
     capacity = 10
     days_until = list(range(1, H))
 
-    fig, ax = plt.subplots(1, 1)
+
     policies = {}
     rel_scheds = []
     for i in range(0, 10):
         for j in range(0, len(day_types)):
             print i, j
-            vals, schedule = generate_policy(H, capacity)
+            schedule, vals, a, b = generate_policy(H, capacity)
             added = False
 
             # Loop to ensure we generate a random policy
 
             while not added:
                 if schedule not in rel_scheds:
-
                     if i not in policies.keys():
                         policies[i] = {}
+                    # create policy for day type
                     policies[i][j] = {}
                     policies[i][j]["CapRel"] = schedule[:-1]
                     policies[i][j]["DaysUntil"] = days_until
+                    # append release schedule to prevent duplicates
                     rel_scheds.append(schedule)
                     added = True
+
+                    # plot w random color
+                    ax.plot(vals, beta.cdf(vals, a, b),
+                            color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
                 else:
-                    vals, schedule = generate_policy(H, capacity)
-
-
+                    # update policy values
+                    schedule, vals, a, b = generate_policy(H, capacity)
     plt.show()
-
-    pprint(policies)
-    print ""
-    pprint(get_configs())
-
     return policies
 
 
@@ -84,11 +86,10 @@ def generate_policy(horizon, capacity=10):
     f = lambda x: int(math.floor(x))
     day_vals = map(f, mult_vals)
 
-    ax.plot(vals, beta.cdf(vals, a, b),
-            color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
-
-    return vals, day_vals
+    # return schedule, distribution values, alpha, and beta
+    return day_vals, vals, a, b
 
 
 if __name__ == "__main__":
+    build_policies()
 

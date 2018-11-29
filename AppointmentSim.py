@@ -42,67 +42,9 @@ class clCapacityReleasePolicy(object):
 
             self.add_capacities(daysFromToday, capReleased)
         else:
-            print "Policy not found, defaulting to policy 1"
-            self.add_policy_1()
+            print "Policy is None!"
 
     # TODO: Add automated policy creation for longer horizons?
-
-    def add_policy_1(self):
-        """
-        A policy object will consist of:
-            a list of days until the date
-            a list of the capacity to be released
-        This will allow for quick creation of different policies and easy
-        implementation.
-        :return:
-        """
-
-        daysFromToday = [self.__planningHorizonLength]
-        capReleased = [[self.__maxCapacity]] * len(self.__lstDayTypes)
-
-        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
-
-    def add_policy_2(self):
-
-        daysFromToday =  [4, 3, 2, 1]
-        capReleased =    [[6, 7, 8, 9]]*len(self.__lstDayTypes)
-
-        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
-
-    def add_policy_3(self):
-        #### adding policy for the first day type
-
-        daysFromToday =  [4, 3, 2, 1]
-        capReleased =    [[2, 4, 6, 8]]*len(self.__lstDayTypes)
-
-        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
-
-    def add_policy_4(self):
-        daysFromToday =  [4, 3, 2, 1]
-        capReleased =    [[0, 1, 4, 7]]*len(self.__lstDayTypes)
-
-        self.add_capacities(self.__lstDayTypes, daysFromToday, capReleased)
-
-    def add_policy_5(self):
-        dayTypeLow, dayTypeHigh = self.__lstDayTypes[0], self.__lstDayTypes[1]
-
-        daysFromToday =  [4, 3, 2, 1]
-        capReleased    = [[6, 7, 8, 9],  # LOW
-                           [2, 4, 6, 8]]  # HIGH
-
-        self.add_capacities([dayTypeLow, dayTypeHigh], daysFromToday, capReleased)
-
-    def add_policy_6(self):
-
-        dayTypeLow = self.__lstDayTypes[0]
-        dayTypeHigh = self.__lstDayTypes[1]
-
-        # list of days from today
-        daysFromToday =  [4, 3, 2, 1]
-        capReleased    = [[2, 4, 6, 8],    # LOW
-                           [6, 7, 8, 9]]    # HIGH
-
-        self.add_capacities([dayTypeLow, dayTypeHigh], daysFromToday, capReleased)
 
     def add_capacities(self, lstDaysFromToday, lstCapacityReleased):
         """
@@ -151,7 +93,6 @@ class clCapacityReleasePolicy(object):
 
         if dayTypeKey in self.__policyDict.keys():
             if daysTilTodayKey in self.__policyDict[dayTypeKey].keys():
-                # print "{} -> {} -> {}".format(dayTypeKey, daysTilTodayKey, self.__policyDict[dayTypeKey][daysTilTodayKey])
                 return self.__policyDict[dayTypeKey][daysTilTodayKey]
         return 0
 
@@ -412,11 +353,14 @@ n = 1000
 lstResults = []
 myResultDict = {}
 
-policies = Policies.get_configs()
 
 def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range):
 
+    # generate policies from Beta Distribution
+    global policies
+    policies = Policies.get_configs()
 
+    # TODO: Look into range-based testing of Ha and Hf
     maxDelayAcute = Ha_Range[0]
     minDelayFollowUp = Hf_Range[0]
 
@@ -436,7 +380,6 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
                                                                onePeriodCancelProb, probCancelAnnounced, theta,
                                                                capacity,horizon,policyType)
                                 lstResults.append(test.runSimulation(n))
-
 
     import pandas as pd
 
