@@ -20,7 +20,7 @@ def get_configs():
     return policies
 
 
-def build_policies():
+def build_policies(horizon, capacity):
     """
     Build all policies
     :param pol_df:
@@ -29,9 +29,8 @@ def build_policies():
 
     # TODO: Fetch horizon and day type values from GUI input
 
-    H = 5
+    H = horizon
     day_types = [1, 2]
-    capacity = 10
     days_until = list(range(1, H))
 
 
@@ -44,7 +43,7 @@ def build_policies():
             added = False
 
             # Loop to ensure we generate a random policy
-
+            # TODO: Check if combined policies exist in policies dict before adding new daily schedule
             while not added:
                 if schedule not in rel_scheds:
                     if i not in policies.keys():

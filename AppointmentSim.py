@@ -357,7 +357,6 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
 
     # generate policies from Beta Distribution
     global policies
-    policies = Policies.get_configs()
 
     # TODO: Look into range-based testing of Ha and Hf
     maxDelayAcute = Ha_Range[0]
@@ -367,6 +366,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
 
     for horizon in H_Range:
         for capacity in C_Range:
+            policies = Policies.build_policies(horizon, capacity)
             for probFollowUpNeeded in Pf_Range:
                 for onePeriodCancelProb in G_Range:
                     for probCancelAnnounced in B_Range:
@@ -377,7 +377,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
                                 # run the test
                                 test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
                                                                onePeriodCancelProb, probCancelAnnounced, theta,
-                                                               capacity,horizon,policyType)
+                                                               capacity,horizon, policyType)
                                 lstResults.append(test.runSimulation(n))
 
     import pandas as pd
