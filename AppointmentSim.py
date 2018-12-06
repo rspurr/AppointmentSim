@@ -66,7 +66,7 @@ class clCapacityReleasePolicy(object):
                 assert lstCapacityReleased[i][j] <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
                 assert self.__policyDict[dayType][daysUntil - 1] >= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
-
+                print "DayType: {} | DaysUntil: {} | Release: {}".format(dayType, daysUntil, lstCapacityReleased[i][j])
                 self.__policyDict[dayType][daysUntil] = max(0, lstCapacityReleased[i][j])
 
     def __addCapacity(self, dayType, daysFromToday, capacityReleased):
@@ -169,6 +169,7 @@ class clAppointmentSimulation(object):
         """
         # what day are we on now
         currentDay = clDay.getCurrentDay()
+        print "CURRENT DAY = {}".format(currentDay)
         # keep track of total cancellations
         ttlApptCancelled = 0
         ttlCancelAnnounced = 0
@@ -179,6 +180,7 @@ class clAppointmentSimulation(object):
             self.planningHorizon[modIndex].releaseCapacity()
             # cancel some of the previously scheduled appointments
             (apptsCancelled, cancelAnnounced) = self.planningHorizon[modIndex].cancelScheduled()
+            print (apptsCancelled, cancelAnnounced)
             ttlApptCancelled = ttlApptCancelled + apptsCancelled
             ttlCancelAnnounced = ttlCancelAnnounced + cancelAnnounced
         # record total cancellations
@@ -189,6 +191,7 @@ class clAppointmentSimulation(object):
 
         (numAcuteRequests, acuteScheduled, acuteToSchedule, followUpToSchedule) = self.planningHorizon[
             thisDayIndex].generateApptRequests()
+        print (numAcuteRequests, acuteScheduled, acuteToSchedule, followUpToSchedule)
         self.lstUtilized.append(self.planningHorizon[thisDayIndex].anticipatedUtilized)
         self.lstScheduled.append(self.planningHorizon[thisDayIndex].scheduled)
         self.lstDebugReleasedCapacity.append(self.planningHorizon[thisDayIndex].releasedCap)
@@ -202,7 +205,7 @@ class clAppointmentSimulation(object):
             modIndex = d % self.lenPlanningHorizon
             (acuteToSchedule, followUpToSchedule) = self.planningHorizon[modIndex].scheduleAcuteAndFollowUp(
                 acuteToSchedule, followUpToSchedule)
-
+            print (acuteToSchedule, followUpToSchedule)
         # after we are done record how many acute and follow-up were refused
         self.lstAcuteRefused.append(acuteToSchedule)
         self.lstFollowupRefused.append(followUpToSchedule)
@@ -283,14 +286,15 @@ class clDay(object):
 
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
+        print "GENERATE SCHEDULED = {}".format(acuteScheduled)
 
         assert acuteScheduled >= 0, "error, more scheduled then released capacity"
         # modify anticipated utilization
         self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
+        print "GENERATE UTILIZED = {}".format(self.anticipatedUtilized)
         self.scheduled = self.scheduled + acuteScheduled
         # now figure out how many would need follow-up
         followUpNeeded = numpy.random.binomial(self.anticipatedUtilized, self.__probFollowUpNeeded)
-
         return (numAcuteRequests, acuteScheduled, numAcuteRequests - acuteScheduled, followUpNeeded)
 
     def scheduleAcuteAndFollowUp(self, acuteNeededToSchedule, followUpNeededToSchedule):
@@ -304,14 +308,18 @@ class clDay(object):
         followUpRemainingToSchedule = followUpNeededToSchedule
         daysTillAppt = self.simulationDay - self.__currentDay
 
+
         if daysTillAppt <= self.__maxDelayAcute:
             acuteScheduled = max(0, min(self.releasedCap - self.scheduled, acuteNeededToSchedule))
+            print "RelCap: {} | Scheduled: {} | acuteNeeded: {}".format(self.releasedCap, self.scheduled, acuteNeededToSchedule)
+
             assert acuteScheduled >= 0, "error, more acute scheduled then released capacity"
             self.scheduled = self.scheduled + acuteScheduled
             self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
             acuteRemainingToSchedule = acuteNeededToSchedule - acuteScheduled
         if daysTillAppt >= self.__minDelayFollowUp:
             followUpScheduled = max(0, min(self.releasedCap - self.scheduled, followUpNeededToSchedule))
+            print "RelCap: {} | Scheduled: {} | followUpNeeded: {}".format(self.releasedCap, self.scheduled, followUpNeededToSchedule)
             assert followUpScheduled >= 0, "error, more follow up scheduled then released capacity"
             self.scheduled = self.scheduled + followUpScheduled
             self.anticipatedUtilized = self.anticipatedUtilized + followUpScheduled
@@ -324,8 +332,10 @@ class clDay(object):
         :return:
         """
         # see if there is something that can be cancelled
+        print "Anticipated Utilized = {}".format(self.anticipatedUtilized)
         if self.anticipatedUtilized <= 0:
             return (0, 0)
+
         # only the appointments that have not yet been cancelled can be cancelled
         apptsCancelled = numpy.random.binomial(self.anticipatedUtilized, self.__onePeriodCancelProb)
         # cancellations can be announced when appointments are cancelled
@@ -344,11 +354,11 @@ class clDay(object):
 
         self.releasedCap = self.__capReleasePolicy.getCapToRelease(self.simulationDay % self.__capReleasePolicy.getNumDayTypes(),
                                                                    self.simulationDay - self.__currentDay)
-
+        print "Released Capacity for day {} = {}".format(self.simulationDay % self.__capReleasePolicy.getNumDayTypes(), self.releasedCap)
         return self.releasedCap
 
 
-n = 1000
+n = 8
 lstResults = []
 myResultDict = {}
 
@@ -373,7 +383,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
                         for theta in T_Range:
                             for policyType in [1]:
                                 # initialize random number generator, so we can get repeatable results
-                                pprint(policies)
+
                                 numpy.random.seed(1234)
                                 # run the test
                                 test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
