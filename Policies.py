@@ -4,7 +4,7 @@ from scipy.stats import beta
 import matplotlib.pyplot as plt
 import math
 from pprint import pprint
-from random import uniform, random
+from random import uniform, random, randint
 
 
 fig, ax = plt.subplots(1, 1)
@@ -31,15 +31,16 @@ def build_policies(horizon, capacity):
 
     H = horizon
     day_types = [1, 2]
-    days_until = list(range(1, H))
+    days_until = list(range(1, H+1))
 
-
+    print H
     policies = {}
     rel_scheds = []
     for i in range(0, 10):
         for j in range(0, len(day_types)):
 
-            schedule, vals, a, b = generate_policy(H, capacity)
+            schedule, vals, a, b = generate_policy(H+1, capacity)
+            print schedule, vals
             added = False
 
             # Loop to ensure we generate a random policy
@@ -61,15 +62,15 @@ def build_policies(horizon, capacity):
                             color=(random(), random(), random()), lw=4, alpha=0.6, label='beta cdf')
                 else:
                     # update policy values
-                    schedule, vals, a, b = generate_policy(H, capacity)
+                    schedule, vals, a, b = generate_policy(H+1, capacity)
     plt.show()
     return policies
 
 
-def generate_policy(horizon, capacity=10):
+def generate_policy(horizon, capacity=10, init=6):
     a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
     # generate x values ( days until ? )
-    x = np.linspace(0, 1.0, num=horizon)
+    x = np.linspace(float(init)/10, 1.0, num=horizon)
 
     # create percentage point function
     vals = beta.ppf(x, a, b)
@@ -90,5 +91,5 @@ def generate_policy(horizon, capacity=10):
 
 
 if __name__ == "__main__":
-    build_policies()
+    pprint(build_policies(4, 10))
 

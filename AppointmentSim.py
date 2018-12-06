@@ -43,8 +43,6 @@ class clCapacityReleasePolicy(object):
         else:
             print "Policy is None!"
 
-    # TODO: Add automated policy creation for longer horizons?
-
     def add_capacities(self, lstDaysFromToday, lstCapacityReleased):
         """
         Apply the capacity policy to the simulation.
@@ -60,6 +58,8 @@ class clCapacityReleasePolicy(object):
         for i, dayType in enumerate(self.__lstDayTypes):
             # get dayType's release schedule
             daysFromToday = lstDaysFromToday[i]
+            print daysFromToday
+            print lstCapacityReleased[i]
             # iterate over release schedule and add release capacities
             for j, daysUntil in enumerate(daysFromToday):
                 # perform error checking
@@ -373,6 +373,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
                         for theta in T_Range:
                             for policyType in [1]:
                                 # initialize random number generator, so we can get repeatable results
+                                pprint(policies)
                                 numpy.random.seed(1234)
                                 # run the test
                                 test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
