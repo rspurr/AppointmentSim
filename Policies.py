@@ -51,7 +51,7 @@ def build_policies(horizon, capacity):
                         policies[i] = {}
                     # create policy for day type
                     policies[i][j] = {}
-                    policies[i][j]["CapRel"] = schedule[:-1]
+                    policies[i][j]["CapRel"] = schedule
                     policies[i][j]["DaysUntil"] = days_until
                     # append release schedule to prevent duplicates
                     rel_scheds.append(schedule)

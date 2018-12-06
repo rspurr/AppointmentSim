@@ -26,8 +26,8 @@ class clCapacityReleasePolicy(object):
             for dayType in self.__lstDayTypes:
                 self.__policyDict[dayType] = {}
 
-                # initally release nothing
-                self.__addCapacity(dayType, self.__planningHorizonLength + 1, 0)
+                # initally release N amount of days (Random right now)
+                self.__addCapacity(dayType, self.__planningHorizonLength + 1, policies[policy][dayType]['CapRel'][self.__planningHorizonLength])
                 # on the last day release maximum
                 self.__addCapacity(dayType, 0, self.__maxCapacity)
 
