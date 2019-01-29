@@ -26,11 +26,6 @@ class clCapacityReleasePolicy(object):
             for dayType in self.__lstDayTypes:
                 self.__policyDict[dayType] = {}
 
-                # initally release N amount of days (Random right now)
-                self.__addCapacity(dayType, self.__planningHorizonLength + 1, policies[policy][dayType]['CapRel'][self.__planningHorizonLength])
-                # on the last day release maximum
-                self.__addCapacity(dayType, 0, self.__maxCapacity)
-
             dayTypes = sorted(policies[policy].keys())
             daysFromToday = []
             capReleased = []
@@ -40,6 +35,8 @@ class clCapacityReleasePolicy(object):
                 capReleased.append(policies[policy][day]['CapRel'])
 
             self.add_capacities(daysFromToday, capReleased)
+
+            pprint(self.__policyDict)
         else:
             print "Policy is None!"
 
@@ -58,14 +55,15 @@ class clCapacityReleasePolicy(object):
         for i, dayType in enumerate(self.__lstDayTypes):
             # get dayType's release schedule
             daysFromToday = lstDaysFromToday[i]
-            print daysFromToday
-            print lstCapacityReleased[i]
+
             # iterate over release schedule and add release capacities
             for j, daysUntil in enumerate(daysFromToday):
+
                 # perform error checking
                 assert lstCapacityReleased[i][j] <= self.__maxCapacity, "cannot release more than " + self.__maxCapacity + " slots"
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
-                assert self.__policyDict[dayType][daysUntil - 1] >= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
+                if daysUntil > 0:
+                    assert self.__policyDict[dayType][daysUntil - 1] >= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
                 print "DayType: {} | DaysUntil: {} | Release: {}".format(dayType, daysUntil, lstCapacityReleased[i][j])
                 self.__policyDict[dayType][daysUntil] = max(0, lstCapacityReleased[i][j])
 
@@ -363,7 +361,7 @@ lstResults = []
 myResultDict = {}
 
 
-def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range):
+def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range, I_Range):
 
     # generate policies from Beta Distribution
     global policies
@@ -376,20 +374,22 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
 
     for horizon in H_Range:
         for capacity in C_Range:
-            policies = Policies.build_policies(horizon, capacity)
-            for probFollowUpNeeded in Pf_Range:
-                for onePeriodCancelProb in G_Range:
-                    for probCancelAnnounced in B_Range:
-                        for theta in T_Range:
-                            for policyType in [1]:
-                                # initialize random number generator, so we can get repeatable results
+            for init in I_Range:
+                policies = Policies.build_policies(horizon, capacity, init=init)
+                for probFollowUpNeeded in Pf_Range:
+                    for onePeriodCancelProb in G_Range:
+                        for probCancelAnnounced in B_Range:
+                            for theta in T_Range:
+                                for policyType in [1]:
+                                    # initialize random number generator, so we can get repeatable results
 
-                                numpy.random.seed(1234)
-                                # run the test
-                                test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
-                                                               onePeriodCancelProb, probCancelAnnounced, theta,
-                                                               capacity,horizon, policyType)
-                                lstResults.append(test.runSimulation(n))
+                                    numpy.random.seed(1234)
+                                    # run the test
+                                    test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
+                                                                   onePeriodCancelProb, probCancelAnnounced, theta,
+                                                                   capacity,horizon, policyType)
+                                    lstResults.append(test.runSimulation(n))
+                del policies
 
     import pandas as pd
 

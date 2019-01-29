@@ -20,7 +20,7 @@ def get_configs():
     return policies
 
 
-def build_policies(horizon, capacity):
+def build_policies(horizon, capacity, init):
     """
     Build all policies
     :param pol_df:
@@ -31,16 +31,17 @@ def build_policies(horizon, capacity):
 
     H = horizon
     day_types = [1, 2]
-    days_until = list(range(1, H+1))
+    days_until = list(range(0, H+2))
 
-    print H
+   # print days_until
+
+   # print H
     policies = {}
     rel_scheds = []
     for i in range(0, 10):
         for j in range(0, len(day_types)):
-
-            schedule, vals, a, b = generate_policy(H+1, capacity)
-            print schedule, vals
+            schedule, vals, a, b = generate_policy(H+1, capacity, init)
+            #print schedule, vals
             added = False
 
             # Loop to ensure we generate a random policy
@@ -67,29 +68,35 @@ def build_policies(horizon, capacity):
     return policies
 
 
-def generate_policy(horizon, capacity=10, init=6):
-    a, b = uniform(0.0, 10.0), uniform(0.0, 10.0)
-    # generate x values ( days until ? )
-    x = np.linspace(float(init)/10, 1.0, num=horizon)
+def generate_policy(horizon, capacity=10, init=5):
 
-    # create percentage point function
+    a, b = uniform(0.0, 20.0), uniform(0.0, 20.0)
+    # generate x values ( days until ? )
+    x = np.linspace(float(init)/10, 1.0, num=horizon-1)
+
     vals = beta.ppf(x, a, b)
 
-    # reverse our values to emulate days until
     rev_vals = list(reversed(vals))
 
-    # multiply by 9 so our largest value is the daily capacity-1
-    mult_by = lambda x: x * (capacity-1)
+    # multiply by C-1 so our largest value is the D-1
+    mult_by = lambda x: x * (capacity-init-1)
     mult_vals = map(mult_by, rev_vals)
+
+    # add our initial value to get back to range {init:capacity}
+    add_all = lambda x: x+init
+    add_vals = map(add_all, mult_vals)
 
     # floor the values and our day release schedule is ready
     f = lambda x: int(math.floor(x))
-    day_vals = map(f, mult_vals)
+    day_vals = map(f, add_vals)
+
+
+    ret_vals = [capacity]+day_vals+[init]
 
     # return schedule, distribution values, alpha, and beta
-    return day_vals, vals, a, b
+    return ret_vals, vals, a, b
 
 
 if __name__ == "__main__":
-    pprint(build_policies(4, 10))
+    pprint(build_policies(4, 10, randint(0,10)))
 

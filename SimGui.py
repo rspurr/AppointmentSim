@@ -5,7 +5,7 @@ import numpy
 
 class SimGui(wx.Frame):
     def __init__(self, *args, **kw):
-        super(SimGui, self).__init__(*args, **kw)
+        super(SimGui, self).__init__( *args, **kw)
 
         self.H_Upper = None
         self.C_Upper = None
@@ -15,7 +15,8 @@ class SimGui(wx.Frame):
         self.Hf_Upper = None
         self.G_Upper = None
         self.B_Upper = None
-        self.T_Upper= None
+        self.T_Upper = None
+        self.I_Upper = None
 
         self.Inc_Label = None
         self.Upper_Label = None
@@ -25,10 +26,10 @@ class SimGui(wx.Frame):
     def InitUI(self):
         self.pnl = wx.Panel(self)
 
-        closeButton = wx.Button(self.pnl, label='Run Simulation', pos=(150, 320))
+        closeButton = wx.Button(self.pnl, label='Run Simulation', pos=(185, 330))
         closeButton.Bind(wx.EVT_BUTTON, self.RunSim)
 
-        params = wx.StaticBox(self.pnl, label="Parameters", pos=(5, 1), size=(420, 350))
+        params = wx.StaticBox(self.pnl, label="Parameters", pos=(5, 1), size=(425, 380))
 
         """ ================= Test Values ================= """
 
@@ -63,6 +64,9 @@ class SimGui(wx.Frame):
         self.T = wx.SpinCtrlDouble(self.pnl, value='1.0', pos=(125, 270), size=(60, -1), min=0.0, max=5.0,
                                     initial=1.0, inc=0.1)
 
+        wx.StaticText(self.pnl, label=' Initial Release ', pos=(15, 300))
+        self.I = wx.SpinCtrl(self.pnl, value='1', pos=(125, 300), size=(60, -1), min=0.0, max=self.C.GetValue())
+
 
         """ ================= Range Check Boxes ================= """
 
@@ -95,7 +99,10 @@ class SimGui(wx.Frame):
         self.T_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 275))
         self.Bind(wx.EVT_CHECKBOX, self.T_range_check, self.T_range_box)
 
-        self.SetSize((450, 390))
+        self.I_range_box = wx.CheckBox(self.pnl, label="", pos=(225, 305))
+        self.Bind(wx.EVT_CHECKBOX, self.I_range_check, self.I_range_box)
+
+        self.SetSize((450, 420))
         self.SetTitle('Simulation Parameters')
         self.Centre()
 
@@ -267,6 +274,24 @@ class SimGui(wx.Frame):
 
         return True
 
+    def I_range_check(self, e):
+
+        if self.Inc_Label is None or self.Upper_Label is None:
+            wx.StaticText(self.pnl, label="Min", pos=(135, 10))
+            wx.StaticText(self.pnl, label="Max", pos=(285, 10))
+            wx.StaticText(self.pnl, label='Step', pos=(360, 10))
+
+        if self.I_range_box.GetValue():
+            self.I_Upper = wx.SpinCtrl(self.pnl, value=str(self.C.GetValue()), pos=(275, 300), size=(60, -1), min=self.I.GetValue()+1, max=self.C.GetValue())
+            self.I_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 300), size=(60, -1), min=1, max=1)
+        else:
+            self.I_Upper.Hide()
+            self.I_Step.Hide()
+            self.I_Upper = None
+            self.I_Step= None
+
+        return True
+
     def RunSim(self, e):
 
         self.H_Range = [self.H.GetValue()] if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, self.H_Step.GetValue()))
@@ -278,11 +303,14 @@ class SimGui(wx.Frame):
         self.G_Range =  [self.G.GetValue()] if not self.G_Upper else list(numpy.arange(self.G.GetValue(), self.G_Upper.GetValue()+0.01, self.G_Step.GetValue()))
         self.B_Range =  [self.B.GetValue()] if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, self.B_Step.GetValue()))
         self.T_Range =  [self.T.GetValue()] if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, self.T_Step.GetValue()))
+        self.I_Range = [self.I.GetValue()] if not self.I_Upper else list(numpy.arange(self.I.GetValue(), self.I_Upper.GetValue() + 1, self.I_Step.GetValue()))
+
+        print self.I_Range
 
         self.Close()
 
         AppointmentSim.main(self.H_Range, self.C_Range, self.D_Range, self.Ha_Range, self.Pf_Range, self.Hf_Range, self.G_Range,
-                            self.B_Range, self.T_Range)
+                            self.B_Range, self.T_Range, self.I_Range)
 
 
 if __name__ == '__main__':
