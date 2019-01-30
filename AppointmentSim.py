@@ -1,6 +1,9 @@
-import numpy.random
-import Policies
 from pprint import pprint
+
+import numpy.random
+
+import Policies
+
 
 class clCapacityReleasePolicy(object):
 
@@ -64,7 +67,7 @@ class clCapacityReleasePolicy(object):
                 assert daysUntil <= self.__planningHorizonLength + 1, "days ahead cannot be greater than " + self.__planningHorizonLength + 1
                 if daysUntil > 0:
                     assert self.__policyDict[dayType][daysUntil - 1] >= max(0, lstCapacityReleased[i][j]), "capacity cannot decrease as time goes on"
-                print "DayType: {} | DaysUntil: {} | Release: {}".format(dayType, daysUntil, lstCapacityReleased[i][j])
+
                 self.__policyDict[dayType][daysUntil] = max(0, lstCapacityReleased[i][j])
 
     def __addCapacity(self, dayType, daysFromToday, capacityReleased):
@@ -148,6 +151,7 @@ class clAppointmentSimulation(object):
         :param numPeriods:
         :return:
         """
+
         for i in range(numPeriods):
             self.advanceDay()
         self.myResultsDict['utilization'] = sum(self.lstUtilized) / numPeriods
@@ -157,7 +161,8 @@ class clAppointmentSimulation(object):
                 self.lstFollowUpRequests)
         else:
             self.myResultsDict['% average follow up refused'] = "not applicable"
-        self.myResultsDict['average number cancelled'] = sum(self.lstApptsCancelled) / numPeriods
+        self.myResultsDict['average number cancelled'] = sum(self.lstApptsCancelled) + sum(
+            self.lstCancelAnnounced) / numPeriods
         return self.myResultsDict
 
     def advanceDay(self):
@@ -167,7 +172,10 @@ class clAppointmentSimulation(object):
         """
         # what day are we on now
         currentDay = clDay.getCurrentDay()
-        print "CURRENT DAY = {}".format(currentDay)
+        print "CURRENT DAY = {} , C = {}, S = {}".format(currentDay, self.planningHorizon[
+            currentDay % self.lenPlanningHorizon].releasedCap,
+                                                         self.planningHorizon[
+                                                             currentDay % self.lenPlanningHorizon].scheduled)
         # keep track of total cancellations
         ttlApptCancelled = 0
         ttlCancelAnnounced = 0
@@ -178,9 +186,10 @@ class clAppointmentSimulation(object):
             self.planningHorizon[modIndex].releaseCapacity()
             # cancel some of the previously scheduled appointments
             (apptsCancelled, cancelAnnounced) = self.planningHorizon[modIndex].cancelScheduled()
-            print (apptsCancelled, cancelAnnounced)
+
             ttlApptCancelled = ttlApptCancelled + apptsCancelled
             ttlCancelAnnounced = ttlCancelAnnounced + cancelAnnounced
+        print "Cancellations: {} : {} ".format(ttlApptCancelled, ttlCancelAnnounced)
         # record total cancellations
         self.lstApptsCancelled.append(ttlApptCancelled)
         self.lstCancelAnnounced.append(ttlCancelAnnounced)
@@ -189,6 +198,7 @@ class clAppointmentSimulation(object):
 
         (numAcuteRequests, acuteScheduled, acuteToSchedule, followUpToSchedule) = self.planningHorizon[
             thisDayIndex].generateApptRequests()
+        print "Appt Stats: "
         print (numAcuteRequests, acuteScheduled, acuteToSchedule, followUpToSchedule)
         self.lstUtilized.append(self.planningHorizon[thisDayIndex].anticipatedUtilized)
         self.lstScheduled.append(self.planningHorizon[thisDayIndex].scheduled)
@@ -198,32 +208,53 @@ class clAppointmentSimulation(object):
 
         # schedule the appointments over the other days
         for d in range(currentDay + 1, currentDay + self.lenPlanningHorizon):
+
             if acuteToSchedule == 0 and followUpToSchedule == 0:
                 break
             modIndex = d % self.lenPlanningHorizon
+            print "Sched Other days =>  Day {} capacity: {} scheduled: {}".format(
+                self.planningHorizon[modIndex].simulationDay,
+                self.planningHorizon[modIndex].releasedCap,
+                self.planningHorizon[
+                    modIndex].scheduled
+                )
+
             (acuteToSchedule, followUpToSchedule) = self.planningHorizon[modIndex].scheduleAcuteAndFollowUp(
                 acuteToSchedule, followUpToSchedule)
+            print "To schedule: "
             print (acuteToSchedule, followUpToSchedule)
-        # after we are done record how many acute and follow-up were refused
+
         self.lstAcuteRefused.append(acuteToSchedule)
         self.lstFollowupRefused.append(followUpToSchedule)
+        # after we are done record how many acute and follow-up were refused
+
         # advance the day
         clDay.advanceCurrentDay()
         # reinitialize current day to use again
         self.planningHorizon[thisDayIndex].initialize(currentDay + self.lenPlanningHorizon)
+
+        self.printMyResults()
+
         return None
 
     def printMyResults(self):
+
         print("average last day capacity " + str(sum(self.lstDebugReleasedCapacity) / n))
         print("average appointments utilized  " + str(sum(self.lstUtilized) / n))
-        print("average number cancelled  " + str(sum(self.lstApptsCancelled) / n))
-        print("% average cancellations announced " + str(
-            100 * sum(self.lstCancelAnnounced) / sum(self.lstApptsCancelled)) + "%")
+        print("average number cancelled  " + str(sum(self.lstApptsCancelled) + sum(self.lstCancelAnnounced) / n))
+
+        if sum(self.lstApptsCancelled) > 0:
+            print("% average cancellations announced " + str(
+                100 * sum(self.lstCancelAnnounced) / sum(self.lstApptsCancelled)) + "%")
+
         print("average acute requests " + str(sum(self.lstAcuteRequests) / n))
-        print("% average acute refused " + str(100 * sum(self.lstAcuteRefused) / sum(self.lstAcuteRequests)) + "%")
+        if sum(self.lstAcuteRequests) > 0:
+            print("% average acute refused " + str(100 * sum(self.lstAcuteRefused) / sum(self.lstAcuteRequests)) + "%")
+
         print("average follow up requests " + str(sum(self.lstFollowUpRequests) / n))
-        print("% average follow-up refused " + str(
-            100 * sum(self.lstFollowupRefused) / sum(self.lstFollowUpRequests)) + "%")
+        if sum(self.lstFollowUpRequests) > 0:
+            print("% average follow-up refused " + str(
+                100 * sum(self.lstFollowupRefused) / sum(self.lstFollowUpRequests)) + "%")
 
 
 class clDay(object):
@@ -259,6 +290,9 @@ class clDay(object):
     def getCurrentDay(cls):
         return cls.__currentDay
 
+    def getSimulationDay(self):
+        return self.simulationDay
+
     def __init__(self, simulationDay):
         self.initialize(simulationDay)
 
@@ -281,15 +315,15 @@ class clDay(object):
         # acute requests are random
 
         numAcuteRequests = numpy.random.poisson(self.rateAcute)
-
+        print "NUM REQUESTS = {}".format(numAcuteRequests)
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
-        print "GENERATE SCHEDULED = {}".format(acuteScheduled)
+        # print "GENERATE SCHEDULED = {}".format(acuteScheduled)
 
         assert acuteScheduled >= 0, "error, more scheduled then released capacity"
         # modify anticipated utilization
         self.anticipatedUtilized = self.anticipatedUtilized + acuteScheduled
-        print "GENERATE UTILIZED = {}".format(self.anticipatedUtilized)
+        # print "GENERATE UTILIZED = {}".format(self.anticipatedUtilized)
         self.scheduled = self.scheduled + acuteScheduled
         # now figure out how many would need follow-up
         followUpNeeded = numpy.random.binomial(self.anticipatedUtilized, self.__probFollowUpNeeded)
@@ -309,7 +343,8 @@ class clDay(object):
 
         if daysTillAppt <= self.__maxDelayAcute:
             acuteScheduled = max(0, min(self.releasedCap - self.scheduled, acuteNeededToSchedule))
-            print "RelCap: {} | Scheduled: {} | acuteNeeded: {}".format(self.releasedCap, self.scheduled, acuteNeededToSchedule)
+            print "====> RelCap: {} | Scheduled: {} | acuteNeeded: {}".format(self.releasedCap, self.scheduled,
+                                                                              acuteNeededToSchedule)
 
             assert acuteScheduled >= 0, "error, more acute scheduled then released capacity"
             self.scheduled = self.scheduled + acuteScheduled
@@ -317,7 +352,8 @@ class clDay(object):
             acuteRemainingToSchedule = acuteNeededToSchedule - acuteScheduled
         if daysTillAppt >= self.__minDelayFollowUp:
             followUpScheduled = max(0, min(self.releasedCap - self.scheduled, followUpNeededToSchedule))
-            print "RelCap: {} | Scheduled: {} | followUpNeeded: {}".format(self.releasedCap, self.scheduled, followUpNeededToSchedule)
+            print "====> RelCap: {} | Scheduled: {} | followUpNeeded: {}".format(self.releasedCap, self.scheduled,
+                                                                                 followUpNeededToSchedule)
             assert followUpScheduled >= 0, "error, more follow up scheduled then released capacity"
             self.scheduled = self.scheduled + followUpScheduled
             self.anticipatedUtilized = self.anticipatedUtilized + followUpScheduled
@@ -330,7 +366,6 @@ class clDay(object):
         :return:
         """
         # see if there is something that can be cancelled
-        print "Anticipated Utilized = {}".format(self.anticipatedUtilized)
         if self.anticipatedUtilized <= 0:
             return (0, 0)
 
@@ -352,11 +387,14 @@ class clDay(object):
 
         self.releasedCap = self.__capReleasePolicy.getCapToRelease(self.simulationDay % self.__capReleasePolicy.getNumDayTypes(),
                                                                    self.simulationDay - self.__currentDay)
-        print "Released Capacity for day {} = {}".format(self.simulationDay % self.__capReleasePolicy.getNumDayTypes(), self.releasedCap)
+        # print "Released Capacity for day {} dayType {} = {}".format(self.simulationDay ,
+        #                                                            self.simulationDay % self.__capReleasePolicy.getNumDayTypes(),
+        #                                                            self.releasedCap)
+
         return self.releasedCap
 
 
-n = 8
+n = 100
 lstResults = []
 myResultDict = {}
 
@@ -369,8 +407,6 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
     # TODO: Look into range-based testing of Ha and Hf
     maxDelayAcute = Ha_Range[0]
     minDelayFollowUp = Hf_Range[0]
-
-    # print H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Range, T_Range
 
     for horizon in H_Range:
         for capacity in C_Range:
@@ -387,11 +423,14 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
                                     # run the test
                                     test = clAppointmentSimulation(maxDelayAcute, probFollowUpNeeded, minDelayFollowUp,
                                                                    onePeriodCancelProb, probCancelAnnounced, theta,
-                                                                   capacity,horizon, policyType)
+                                                                   capacity, horizon, policyType)
                                     lstResults.append(test.runSimulation(n))
+
                 del policies
 
     import pandas as pd
+
+    print lstResults
 
     df = pd.DataFrame(lstResults)
     from pandas import ExcelWriter

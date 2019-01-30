@@ -1,11 +1,16 @@
-import pandas as pd
 import numpy as np
 from scipy.stats import beta
 import matplotlib.pyplot as plt
 import math
 from pprint import pprint
 from random import uniform, random, randint
+import math
+from pprint import pprint
+from random import uniform, random, randint
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import beta
 
 fig, ax = plt.subplots(1, 1)
 
@@ -43,10 +48,11 @@ def build_policies(horizon, capacity, init):
             schedule, vals, a, b = generate_policy(H+1, capacity, init)
             #print schedule, vals
             added = False
-
+            tries = 0
             # Loop to ensure we generate a random policy
             # TODO: Check if combined policies exist in policies dict before adding new daily schedule
-            while not added:
+            while not added or tries > 1000:
+                tries += 1
                 if schedule not in rel_scheds:
                     if i not in policies.keys():
                         policies[i] = {}
@@ -64,17 +70,26 @@ def build_policies(horizon, capacity, init):
                 else:
                     # update policy values
                     schedule, vals, a, b = generate_policy(H+1, capacity)
+        print i
     plt.show()
     return policies
+
+
+def timeout():
+    print "PPF generation timed out"
+    raise Exception("PPF")
 
 
 def generate_policy(horizon, capacity=10, init=5):
 
     a, b = uniform(0.0, 20.0), uniform(0.0, 20.0)
+
     # generate x values ( days until ? )
     x = np.linspace(float(init)/10, 1.0, num=horizon-1)
 
     vals = beta.ppf(x, a, b)
+
+    print vals
 
     rev_vals = list(reversed(vals))
 
@@ -92,6 +107,8 @@ def generate_policy(horizon, capacity=10, init=5):
 
 
     ret_vals = [capacity]+day_vals+[init]
+
+    print ret_vals
 
     # return schedule, distribution values, alpha, and beta
     return ret_vals, vals, a, b

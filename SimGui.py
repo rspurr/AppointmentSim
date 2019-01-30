@@ -1,6 +1,7 @@
-import wx
-import AppointmentSim
 import numpy
+import wx
+
+import AppointmentSim
 
 
 class SimGui(wx.Frame):
@@ -282,7 +283,8 @@ class SimGui(wx.Frame):
             wx.StaticText(self.pnl, label='Step', pos=(360, 10))
 
         if self.I_range_box.GetValue():
-            self.I_Upper = wx.SpinCtrl(self.pnl, value=str(self.C.GetValue()), pos=(275, 300), size=(60, -1), min=self.I.GetValue()+1, max=self.C.GetValue())
+            self.I_Upper = wx.SpinCtrl(self.pnl, value=str(self.I.GetValue() + 1), pos=(275, 300), size=(60, -1),
+                                       min=self.I.GetValue() + 1, max=self.C.GetValue())
             self.I_Step = wx.SpinCtrl(self.pnl, value=str(1), pos=(350, 300), size=(60, -1), min=1, max=1)
         else:
             self.I_Upper.Hide()
@@ -304,8 +306,6 @@ class SimGui(wx.Frame):
         self.B_Range =  [self.B.GetValue()] if not self.B_Upper else list(numpy.arange(self.B.GetValue(), self.B_Upper.GetValue()+0.01, self.B_Step.GetValue()))
         self.T_Range =  [self.T.GetValue()] if not self.T_Upper else list(numpy.arange(self.T.GetValue(), self.T_Upper.GetValue()+0.01, self.T_Step.GetValue()))
         self.I_Range = [self.I.GetValue()] if not self.I_Upper else list(numpy.arange(self.I.GetValue(), self.I_Upper.GetValue() + 1, self.I_Step.GetValue()))
-
-        print self.I_Range
 
         self.Close()
 
