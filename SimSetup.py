@@ -25,6 +25,10 @@ class SimGui(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
+        """
+        Initializes the GUI elements and adds action handlers to buttons
+        :return:
+        """
         self.pnl = wx.Panel(self)
 
         closeButton = wx.Button(self.pnl, label='Run Simulation', pos=(185, 330))
@@ -107,7 +111,18 @@ class SimGui(wx.Frame):
         self.SetTitle('Simulation Parameters')
         self.Centre()
 
-    def H_range_check(self, e):
+    """     
+            *** Range Check Boxes ***
+            
+            - Functions below handle changes to each "range" CheckBox element
+            - If box is selected, then the simulation parameters will be tested over the range of values
+                from Min -> Max , incremented by "Step" each time
+            - Sets upper bound for parameter if box is selected and sets increment (Step) value
+            - Each function is pretty much the same, with the exception of types: some are integers, some are doubles
+        
+    """
+
+    def H_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -124,7 +139,7 @@ class SimGui(wx.Frame):
             self.H_Step = None
         return True
 
-    def C_range_check(self, e):
+    def C_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -142,7 +157,7 @@ class SimGui(wx.Frame):
 
         return True
 
-    def D_range_check(self, e):
+    def D_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -159,7 +174,7 @@ class SimGui(wx.Frame):
             self.D_Step = None
         return True
 
-    def Ha_range_check(self, e):
+    def Ha_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -177,7 +192,7 @@ class SimGui(wx.Frame):
 
         return True
 
-    def Pf_range_check(self, e):
+    def Pf_range_check(self):
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
             wx.StaticText(self.pnl, label="Max", pos=(285, 10))
@@ -196,7 +211,7 @@ class SimGui(wx.Frame):
             self.Pf_Upper = None
         return True
 
-    def Hf_range_check(self, e):
+    def Hf_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -213,7 +228,7 @@ class SimGui(wx.Frame):
             self.Hf_Upper = None
         return True
 
-    def G_range_check(self, e):
+    def G_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -234,7 +249,7 @@ class SimGui(wx.Frame):
 
         return True
 
-    def B_range_check(self, e):
+    def B_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -254,7 +269,7 @@ class SimGui(wx.Frame):
             self.B_Upper = None
         return True
 
-    def T_range_check(self, e):
+    def T_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -275,7 +290,7 @@ class SimGui(wx.Frame):
 
         return True
 
-    def I_range_check(self, e):
+    def I_range_check(self):
 
         if self.Inc_Label is None or self.Upper_Label is None:
             wx.StaticText(self.pnl, label="Min", pos=(135, 10))
@@ -294,8 +309,16 @@ class SimGui(wx.Frame):
 
         return True
 
-    def RunSim(self, e):
+    def RunSim(self):
+        """
+        Sets up the *_Range lists for the simulation parameters. If an upper bound exists, then we assume the
+        parameter will be tested over a range of values (see numpy.arange()). If not, then only the single value of
+        the SpinCtrl element for that parameter will be tested.
 
+        After each parameter list is set, we call the main function of AppointmentSim to begin the simulation.
+
+        :return:
+        """
         self.H_Range = [self.H.GetValue()] if not self.H_Upper else list(numpy.arange(self.H.GetValue(), self.H_Upper.GetValue()+1, self.H_Step.GetValue()))
         self.C_Range = [self.C.GetValue()] if not self.C_Upper else list(numpy.arange(self.C.GetValue(), self.C_Upper.GetValue()+1, self.C_Step.GetValue()))
         self.D_Range = [self.D.GetValue()] if not self.D_Upper else list(numpy.arange(self.D.GetValue(), self.D_Upper.GetValue()+1, self.D_Step.GetValue()))

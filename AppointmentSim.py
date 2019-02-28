@@ -46,7 +46,6 @@ class clCapacityReleasePolicy(object):
     def add_capacities(self, lstDaysFromToday, lstCapacityReleased):
         """
         Apply the capacity policy to the simulation.
-        :param lstDayTypes: list of day types
         :param lstDaysFromToday: list of days from today, has corresponding capacity to be released
         :param lstCapacityReleased: list of capacities to be released
         :return:
@@ -54,6 +53,7 @@ class clCapacityReleasePolicy(object):
 
         assert len(self.__lstDayTypes) == len(lstCapacityReleased), "too many capacity release schedules"
         assert len(lstDaysFromToday) == len(lstCapacityReleased), "day must have corresponding capacity"
+        
         # add capacities for each day type
         for i, dayType in enumerate(self.__lstDayTypes):
             # get dayType's release schedule
@@ -313,9 +313,7 @@ class clDay(object):
         :return:
         """
         # acute requests are random
-
         numAcuteRequests = numpy.random.poisson(self.rateAcute)
-        print "NUM REQUESTS = {}".format(numAcuteRequests)
         # schedule acute requests
         acuteScheduled = min(self.releasedCap - self.scheduled, numAcuteRequests)
         # print "GENERATE SCHEDULED = {}".format(acuteScheduled)
@@ -343,8 +341,8 @@ class clDay(object):
 
         if daysTillAppt <= self.__maxDelayAcute:
             acuteScheduled = max(0, min(self.releasedCap - self.scheduled, acuteNeededToSchedule))
-            print "====> RelCap: {} | Scheduled: {} | acuteNeeded: {}".format(self.releasedCap, self.scheduled,
-                                                                              acuteNeededToSchedule)
+            # "====> RelCap: {} | Scheduled: {} | acuteNeeded: {}".format(self.releasedCap, self.scheduled,
+            #                                                                 acuteNeededToSchedule)
 
             assert acuteScheduled >= 0, "error, more acute scheduled then released capacity"
             self.scheduled = self.scheduled + acuteScheduled
@@ -352,8 +350,8 @@ class clDay(object):
             acuteRemainingToSchedule = acuteNeededToSchedule - acuteScheduled
         if daysTillAppt >= self.__minDelayFollowUp:
             followUpScheduled = max(0, min(self.releasedCap - self.scheduled, followUpNeededToSchedule))
-            print "====> RelCap: {} | Scheduled: {} | followUpNeeded: {}".format(self.releasedCap, self.scheduled,
-                                                                                 followUpNeededToSchedule)
+            # print "====> RelCap: {} | Scheduled: {} | followUpNeeded: {}".format(self.releasedCap, self.scheduled,
+            #                                                                     followUpNeededToSchedule)
             assert followUpScheduled >= 0, "error, more follow up scheduled then released capacity"
             self.scheduled = self.scheduled + followUpScheduled
             self.anticipatedUtilized = self.anticipatedUtilized + followUpScheduled
@@ -411,7 +409,7 @@ def main(H_Range, C_Range, D_Range, Ha_Range, Pf_Range, Hf_Range, G_Range, B_Ran
     for horizon in H_Range:
         for capacity in C_Range:
             for init in I_Range:
-                policies = Policies.build_policies(horizon, capacity, init=init)
+                policies = Policies.build_policies(horizon=horizon, capacity=capacity, initital_release=init)
                 for probFollowUpNeeded in Pf_Range:
                     for onePeriodCancelProb in G_Range:
                         for probCancelAnnounced in B_Range:
